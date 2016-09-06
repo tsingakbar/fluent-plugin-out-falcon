@@ -133,8 +133,9 @@ class HTTPOutputTestBase < Test::Unit::TestCase
 end
 
 class HTTPOutputTest < HTTPOutputTestBase
-  CONFIG = %[
+  CONFIG_FORM = %[
     endpoint_url http://127.0.0.1:#{TEST_LISTEN_PORT}/api/
+    serializer form
   ]
 
   CONFIG_JSON = %[
@@ -144,15 +145,18 @@ class HTTPOutputTest < HTTPOutputTestBase
 
   CONFIG_PUT = %[
     endpoint_url http://127.0.0.1:#{TEST_LISTEN_PORT}/api/
+    serializer form
     http_method put
   ]
 
   CONFIG_HTTP_ERROR = %[
     endpoint_url https://127.0.0.1:#{TEST_LISTEN_PORT + 1}/api/
+    serializer form
   ]
 
   CONFIG_HTTP_ERROR_SUPPRESSED = %[
     endpoint_url https://127.0.0.1:#{TEST_LISTEN_PORT + 1}/api/
+    serializer form
     raise_on_error false
   ]
 
@@ -160,10 +164,11 @@ class HTTPOutputTest < HTTPOutputTestBase
 
   CONFIG_RATE_LIMIT = %[
     endpoint_url http://127.0.0.1:#{TEST_LISTEN_PORT}/api/
+    serializer form
     rate_limit_msec #{RATE_LIMIT_MSEC}
   ]
 
-  def create_driver(conf=CONFIG, tag='test.metrics')
+  def create_driver(conf=CONFIG_FORM, tag='test.metrics')
     Fluent::Test::OutputTestDriver.new(Fluent::HTTPOutput, tag).configure(conf)
   end
 
@@ -226,11 +231,11 @@ class HTTPOutputTest < HTTPOutputTestBase
     assert_equal 1, @posts.size
     record = @posts[0]
 
-    assert_equal 50, record[:json]['field1']
-    assert_equal 20, record[:json]['field2']
-    assert_equal 10, record[:json]['field3']
-    assert_equal 1, record[:json]['otherfield']
-    assert_equal binary_string, record[:json]['binary']
+    assert_equal 50, record[:json][0]['field1']
+    assert_equal 20, record[:json][0]['field2']
+    assert_equal 10, record[:json][0]['field3']
+    assert_equal 1, record[:json][0]['otherfield']
+    assert_equal binary_string, record[:json][0]['binary'].force_encoding("ascii-8bit")
     assert_nil record[:auth]
   end
 
@@ -282,14 +287,14 @@ class HTTPOutputTest < HTTPOutputTestBase
   def test_auth
     @auth = true # enable authentication of dummy server
 
-    d = create_driver(CONFIG, 'test.metrics')
+    d = create_driver(CONFIG_FORM, 'test.metrics')
     d.emit({ 'field1' => 50, 'field2' => 20, 'field3' => 10, 'otherfield' => 1 })
     d.run # failed in background, and output warn log
 
     assert_equal 0, @posts.size
     assert_equal 1, @prohibited
 
-    d = create_driver(CONFIG + %[
+    d = create_driver(CONFIG_FORM + %[
       authentication basic
       username alice
       password wrong_password
@@ -300,7 +305,7 @@ class HTTPOutputTest < HTTPOutputTestBase
     assert_equal 0, @posts.size
     assert_equal 2, @prohibited
 
-    d = create_driver(CONFIG + %[
+    d = create_driver(CONFIG_FORM + %[
       authentication basic
       username alice
       password secret!

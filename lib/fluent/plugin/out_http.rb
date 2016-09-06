@@ -1,5 +1,5 @@
 class Fluent::HTTPOutput < Fluent::Output
-  Fluent::Plugin.register_output('http', self)
+  Fluent::Plugin.register_output('falcon', self)
 
   def initialize
     super
@@ -8,6 +8,9 @@ class Fluent::HTTPOutput < Fluent::Output
     require 'yajl'
   end
 
+  # Map which record field to falcon's value filed
+  #config_param :value_mapping, :string
+
   # Endpoint URL ex. localhost.local/api/
   config_param :endpoint_url, :string
 
@@ -15,7 +18,7 @@ class Fluent::HTTPOutput < Fluent::Output
   config_param :http_method, :string, :default => :post
   
   # form | json
-  config_param :serializer, :string, :default => :form
+  config_param :serializer, :string, :default => :json
 
   # Simple rate limiting: ignore any records within `rate_limit_msec`
   # since the last one.
@@ -79,7 +82,14 @@ class Fluent::HTTPOutput < Fluent::Output
   end
 
   def set_json_body(req, data)
-    req.body = Yajl.dump(data)
+    # TODO remove record_modifier
+    #req.body = Yajl.dump([data].map do |record|
+    #  temp = record[@value_mapping]
+    #  data.clear
+    #  data['value'] = temp
+    #  data['time'] = Time.now.to_i
+    #end)
+    req.body = Yajl.dump([data])
     req['Content-Type'] = 'application/json'
   end
 
