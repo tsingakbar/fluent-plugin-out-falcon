@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 require 'uri'
 require 'yajl'
-require 'fluent/test/http_output_test'
-require 'fluent/plugin/out_http'
+require 'fluent/test/falcon_output_test'
+require 'fluent/plugin/out_falcon'
 
 
 TEST_LISTEN_PORT = 5126
 
 
-class HTTPOutputTestBase < Test::Unit::TestCase
+class FalconOutputTestBase < Test::Unit::TestCase
   # setup / teardown for servers
   def setup
     Fluent::Test.setup
@@ -132,7 +132,7 @@ class HTTPOutputTestBase < Test::Unit::TestCase
   end
 end
 
-class HTTPOutputTest < HTTPOutputTestBase
+class FalconOutputTest < FalconOutputTestBase
   CONFIG_FORM = %[
     endpoint_url http://127.0.0.1:#{TEST_LISTEN_PORT}/api/
     serializer form
@@ -169,7 +169,7 @@ class HTTPOutputTest < HTTPOutputTestBase
   ]
 
   def create_driver(conf=CONFIG_FORM, tag='test.metrics')
-    Fluent::Test::OutputTestDriver.new(Fluent::HTTPOutput, tag).configure(conf)
+    Fluent::Test::OutputTestDriver.new(Fluent::FalconOutput, tag).configure(conf)
   end
 
   def test_configure

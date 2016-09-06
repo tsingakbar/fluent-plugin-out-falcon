@@ -1,4 +1,4 @@
-class Fluent::HTTPOutput < Fluent::Output
+class Fluent::FalconOutput < Fluent::Output
   Fluent::Plugin.register_output('falcon', self)
 
   def initialize
@@ -7,9 +7,6 @@ class Fluent::HTTPOutput < Fluent::Output
     require 'uri'
     require 'yajl'
   end
-
-  # Map which record field to falcon's value filed
-  #config_param :value_mapping, :string
 
   # Endpoint URL ex. localhost.local/api/
   config_param :endpoint_url, :string
@@ -82,13 +79,6 @@ class Fluent::HTTPOutput < Fluent::Output
   end
 
   def set_json_body(req, data)
-    # TODO remove record_modifier
-    #req.body = Yajl.dump([data].map do |record|
-    #  temp = record[@value_mapping]
-    #  data.clear
-    #  data['value'] = temp
-    #  data['time'] = Time.now.to_i
-    #end)
     req.body = Yajl.dump([data])
     req['Content-Type'] = 'application/json'
   end
