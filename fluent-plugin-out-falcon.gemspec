@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |gem|
   gem.name          = "fluent-plugin-out-falcon"
-  gem.version       = "0.1.6"
+  gem.version       = "0.1.7"
   gem.authors       = ["tsingakbar"]
   gem.email         = ["yuqing@cmcm.com"]
   gem.summary       = %q{A Fluentd output plugin to send logs to falcon's push API}
@@ -17,6 +17,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency "yajl-ruby", "~> 1.0"
   gem.add_runtime_dependency "fluentd", [">= 0.10.0", "< 2"]
+  gem.add_runtime_dependency "net-http-persistent", ">= 2.9.0"
   gem.add_development_dependency "bundler"
   gem.add_development_dependency "rake"
   gem.add_development_dependency "test-unit", ">= 3.1.0"

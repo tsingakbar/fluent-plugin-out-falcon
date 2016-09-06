@@ -3,7 +3,7 @@ class Fluent::FalconOutput < Fluent::Output
 
   def initialize
     super
-    require 'net/http'
+    require 'net/http/persistent'
     require 'uri'
     require 'yajl'
   end
@@ -36,10 +36,12 @@ class Fluent::FalconOutput < Fluent::Output
   end
 
   def start
+    @http = Net::HTTP::Persistent.new "falconclient"
     super
   end
 
   def shutdown
+    @http.shutdown
     super
   end
 
@@ -60,7 +62,7 @@ class Fluent::FalconOutput < Fluent::Output
   def create_request(tag, time, record)
     url = format_url(tag, time, record)
     uri = URI.parse(url)
-    req = Net::HTTP.const_get('Post').new(uri.path)
+    req = Net::HTTP::Post.new(uri.path)
     set_body(req, tag, time, record)
     set_header(req, tag, time, record)
     return req, uri
@@ -80,10 +82,10 @@ class Fluent::FalconOutput < Fluent::Output
         req.basic_auth(@username, @password)
       end
       @last_request_time = Time.now.to_f
-      res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request(req) }
+      res = @http.request uri, req
     rescue => e # rescue all StandardErrors
       # server didn't respond
-      $log.warn "Net::HTTP.#{req.method.capitalize} raises exception: #{e.class}, '#{e.message}'"
+      $log.warn "Net::HTTP::Post raises exception: #{e.class}, '#{e.message}'"
       raise e if @raise_on_error
     else
        unless res and res.is_a?(Net::HTTPSuccess)
