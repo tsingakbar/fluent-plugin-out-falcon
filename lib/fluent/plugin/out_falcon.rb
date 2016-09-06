@@ -8,14 +8,10 @@ class Fluent::FalconOutput < Fluent::Output
     require 'yajl'
   end
 
+  config_param :records, :string
+
   # Endpoint URL ex. localhost.local/api/
   config_param :endpoint_url, :string
-
-  # HTTP method
-  config_param :http_method, :string, :default => :post
-  
-  # form | json
-  config_param :serializer, :string, :default => :json
 
   # Simple rate limiting: ignore any records within `rate_limit_msec`
   # since the last one.
@@ -31,20 +27,6 @@ class Fluent::FalconOutput < Fluent::Output
 
   def configure(conf)
     super
-
-    serializers = [:json, :form]
-    @serializer = if serializers.include? @serializer.intern
-                    @serializer.intern
-                  else
-                    :form
-                  end
-
-    http_methods = [:get, :put, :post, :delete]
-    @http_method = if http_methods.include? @http_method.intern
-                    @http_method.intern
-                  else
-                    :post
-                  end
 
     @auth = case @authentication
             when 'basic' then :basic
@@ -66,11 +48,8 @@ class Fluent::FalconOutput < Fluent::Output
   end
 
   def set_body(req, tag, time, record)
-    if @serializer == :json
-      set_json_body(req, record)
-    else
-      req.set_form_data(record)
-    end
+    req.body = Yajl.dump(eval(@records))
+    req['Content-Type'] = 'application/json'
     req
   end
 
@@ -78,15 +57,10 @@ class Fluent::FalconOutput < Fluent::Output
     req
   end
 
-  def set_json_body(req, data)
-    req.body = Yajl.dump([data])
-    req['Content-Type'] = 'application/json'
-  end
-
   def create_request(tag, time, record)
     url = format_url(tag, time, record)
     uri = URI.parse(url)
-    req = Net::HTTP.const_get(@http_method.to_s.capitalize).new(uri.path)
+    req = Net::HTTP.const_get('Post').new(uri.path)
     set_body(req, tag, time, record)
     set_header(req, tag, time, record)
     return req, uri

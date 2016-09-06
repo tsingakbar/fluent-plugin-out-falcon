@@ -2,10 +2,10 @@
 
 Gem::Specification.new do |gem|
   gem.name          = "fluent-plugin-out-falcon"
-  gem.version       = "0.1.5"
-  gem.authors       = ["Marica Odagaki"]
-  gem.email         = ["ento.entotto@gmail.com"]
-  gem.summary       = %q{A Fluentd output plugin to send logs to falcon's push api}
+  gem.version       = "0.1.6"
+  gem.authors       = ["tsingakbar"]
+  gem.email         = ["yuqing@cmcm.com"]
+  gem.summary       = %q{A Fluentd output plugin to send logs to falcon's push API}
   gem.description   = gem.summary
   gem.homepage      = "https://github.com/tsingakbar/fluent-plugin-out-falcon"
   gem.licenses      = ["Apache-2.0"]
