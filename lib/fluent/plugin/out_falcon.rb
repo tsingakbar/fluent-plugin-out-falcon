@@ -36,7 +36,7 @@ class Fluent::FalconOutput < Fluent::Output
   end
 
   def start
-    @http = Net::HTTP::Persistent.new "falconclient"
+    @http = Net::HTTP::Persistent.new
     super
   end
 
