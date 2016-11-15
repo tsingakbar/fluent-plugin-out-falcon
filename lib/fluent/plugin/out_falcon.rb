@@ -13,6 +13,8 @@ class Fluent::FalconOutput < Fluent::Output
   # Endpoint URL ex. localhost.local/api/
   config_param :endpoint_url, :string
 
+  config_param :match_tag, :string, :default => nil
+
   # Simple rate limiting: ignore any records within `rate_limit_msec`
   # since the last one.
   config_param :rate_limit_msec, :integer, :default => 0
@@ -71,7 +73,7 @@ class Fluent::FalconOutput < Fluent::Output
   def send_request(req, uri)    
     is_rate_limited = (@rate_limit_msec != 0 and not @last_request_time.nil?)
     if is_rate_limited and ((Time.now.to_f - @last_request_time) * 1000.0 < @rate_limit_msec)
-      $log.info('Dropped request due to rate limiting')
+      #$log.info('Dropped request due to rate limiting')
       return
     end
     
@@ -100,8 +102,10 @@ class Fluent::FalconOutput < Fluent::Output
   end # end send_request
 
   def handle_record(tag, time, record)
-    req, uri = create_request(tag, time, record)
-    send_request(req, uri)
+    if @match_tag == nil || @match_tag == tag
+      req, uri = create_request(tag, time, record)
+      send_request(req, uri)
+    end
   end
 
   def emit(tag, es, chain)
